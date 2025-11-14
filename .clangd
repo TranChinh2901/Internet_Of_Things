@@ -1,0 +1,18 @@
+CompileFlags:
+  # Remove arguments that clangd doesn't understand
+  Remove:
+    - -mlongcalls
+    - -fstrict-volatile-bitfields
+    - -fno-tree-switch-conversion
+    - -mtext-section-literals
+    - -ffunction-sections
+    - -fdata-sections
+    - -Wl,--gc-sections
+    - -MMD
+    - -MP
+
+  # Add compiler flags that help clangd understand the code better
+  Add:
+    - -ferror-limit=0
+    - -Wall
+    - -Wextra
