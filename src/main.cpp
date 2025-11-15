@@ -6,17 +6,15 @@
 #include <WiFi.h>
 #include <cstdio>
 
-// WiFi credentials - UPDATE THESE WITH YOUR WIFI DETAILS
-#define WIFI_SSID "chuanef"
-#define WIFI_PASSWORD "chiuchiu"
+#define WIFI_SSID "mualike.io.vn"
+#define WIFI_PASSWORD "19052004@"
 
-// MQTT Broker settings
 #define MQTT_BROKER "broker.emqx.io"
 #define MQTT_PORT 1883
 #define MQTT_TOPIC "sensor/slave1/data"
 #define MQTT_CLIENT_ID "ESP32_Master_BLE_Gateway"
 
-#define SLAVE1_ADDR "00:4b:12:3a:da:d6"
+#define SLAVE1_ADDR "00:4b:12:3b:21:9e"
 // #define SLAVE2_ADDR "24:6F:28:AB:CD:02"
 // #define SLAVE3_ADDR "24:6F:28:AB:CD:03"
 
@@ -33,10 +31,8 @@ String d1; // Data from slave 1
 unsigned long lastMqttAttempt = 0;
 const long mqttReconnectInterval = 5000;
 
-// --- Callback when slave sends notification ---
 void notifyCallback1(BLERemoteCharacteristic* c, uint8_t* data, size_t len, bool isNotify)
 {
-    // Properly construct string with exact length (data is not null-terminated)
     d1 = String((char*)data, len);
     Serial.print("Slave1CC: ");
     Serial.println(d1);
@@ -72,7 +68,6 @@ void setupWiFi()
 // --- Connect to MQTT Broker ---
 void reconnectMQTT()
 {
-    // Don't attempt to reconnect too frequently
     if (millis() - lastMqttAttempt < mqttReconnectInterval) {
         return;
     }
@@ -102,8 +97,6 @@ bool connectToSlave(BLEClient* client, const char* addr, void (*cb)(BLERemoteCha
     }
     Serial.print("Connected to ");
     Serial.println(addr);
-
-    // Request larger MTU to handle full JSON payload (default is 23 bytes, only 20 usable)
     client->setMTU(512);
     Serial.println("MTU set to 512 bytes");
 
@@ -129,14 +122,9 @@ bool connectToSlave(BLEClient* client, const char* addr, void (*cb)(BLERemoteCha
 void setup()
 {
     Serial.begin(115200);
-
-    // Initialize WiFi
     setupWiFi();
-
-    // Initialize MQTT
     mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
 
-    // Initialize BLE
     BLEDevice::init("");
     client1 = BLEDevice::createClient();
 
@@ -149,18 +137,15 @@ void setup()
 
 void loop()
 {
-    // Ensure MQTT is connected
     if (!mqttClient.connected()) {
         reconnectMQTT();
     }
     mqttClient.loop();
 
     Serial.println("LoRa TX Slave1: " + d1);
-    // Process and publish sensor data
     if (d1.length() > 0) {
         Serial.println("LoRa TX Slave1: " + d1);
 
-        // Publish to MQTT if connected
         if (mqttClient.connected()) {
             if (mqttClient.publish(MQTT_TOPIC, d1.c_str())) {
                 Serial.println("MQTT: Data published successfully");
